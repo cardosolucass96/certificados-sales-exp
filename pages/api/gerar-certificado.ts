@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generateCertificate } from '@/lib/pdf-generator'
-import { uploadFile } from '@/lib/minio'
+import fs from 'fs'
+import path from 'path'
 
 type SuccessResponse = {
   url: string
@@ -43,11 +44,21 @@ export default async function handler(
 
     const fileName = `certificado-${timestamp}-${sanitizedName}.pdf`
     
-    // Fazer upload para o MinIO
-    console.log('Fazendo upload para MinIO...')
-    const fileUrl = await uploadFile(fileName, pdfBuffer, 'application/pdf')
+    // Salvar localmente no diretório public/certificados
+    const certificadosDir = path.join(process.cwd(), 'public', 'certificados')
     
-    console.log('Certificado salvo no MinIO:', fileUrl)
+    // Criar diretório se não existir
+    if (!fs.existsSync(certificadosDir)) {
+      fs.mkdirSync(certificadosDir, { recursive: true })
+    }
+    
+    const filePath = path.join(certificadosDir, fileName)
+    fs.writeFileSync(filePath, pdfBuffer)
+    
+    console.log('Certificado salvo em:', filePath)
+
+    // URL pública para o arquivo
+    const fileUrl = `/certificados/${fileName}`
 
     return res.status(200).json({
       url: fileUrl,

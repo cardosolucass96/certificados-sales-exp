@@ -11,6 +11,8 @@ export default function Home() {
   const [fullName, setFullName] = useState('')
   const [participant, setParticipant] = useState<any>(null)
   const [autoSearched, setAutoSearched] = useState(false)
+  const [loadingStep, setLoadingStep] = useState('')
+  const [showAutoLoading, setShowAutoLoading] = useState(false)
 
   // Busca automática quando há parâmetro 'cod' na URL
   useEffect(() => {
@@ -18,6 +20,8 @@ export default function Home() {
       const codigo = router.query.cod as string
       setSearchValue(codigo)
       setAutoSearched(true)
+      setShowAutoLoading(true)
+      setLoadingStep('Procurando ingresso...')
       performSearch(codigo)
     }
   }, [router.isReady, router.query.cod, autoSearched])
@@ -40,6 +44,7 @@ export default function Home() {
       if (!response.ok) {
         setError(data.error || 'Participante não encontrado')
         setLoading(false)
+        setShowAutoLoading(false)
         return
       }
 
@@ -48,13 +53,17 @@ export default function Home() {
       // Verifica se o nome completo está preenchido
       if (!data['nome participante'] || data['nome participante'].trim() === '') {
         setNeedsName(true)
+        setShowAutoLoading(false)
       } else {
         // Se tem nome, gerar certificado automaticamente
+        setLoadingStep('Gerando certificado...')
+        console.log('Iniciando geração de certificado para:', data['nome participante'])
         await generateCertificate(data['nome participante'], data)
       }
     } catch (err) {
       setError('Erro ao buscar participante')
       console.error(err)
+      setShowAutoLoading(false)
     } finally {
       setLoading(false)
     }
@@ -98,6 +107,7 @@ export default function Home() {
       if (!response.ok) {
         setError(data.error || 'Erro ao gerar certificado')
         setLoading(false)
+        setShowAutoLoading(false)
         return
       }
 
@@ -106,8 +116,10 @@ export default function Home() {
     } catch (err) {
       setError('Erro ao gerar certificado')
       console.error(err)
+      setShowAutoLoading(false)
     } finally {
       setLoading(false)
+      setShowAutoLoading(false)
     }
   }
 
@@ -140,7 +152,49 @@ export default function Home() {
 
           {/* Card principal */}
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 border border-slate-700">
-            {!needsName ? (
+            {showAutoLoading ? (
+              /* Tela de loading automático */
+              <div className="text-center py-8">
+                <div className="mb-6">
+                  {/* Spinner animado */}
+                  <div className="mx-auto w-16 h-16 border-4 border-slate-600 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+                  
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Processando Ingresso
+                  </h2>
+                  
+                  {/* ID do ingresso */}
+                  <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 mb-4">
+                    <p className="text-xs text-slate-400 mb-1">ID do Ingresso:</p>
+                    <p className="text-sm font-mono text-orange-400 break-all">
+                      {searchValue}
+                    </p>
+                  </div>
+                  
+                  {/* Status atual */}
+                  <div className="flex items-center justify-center gap-2 text-slate-300">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <span className="text-lg">{loadingStep}</span>
+                  </div>
+                </div>
+                
+                {/* Barras de progresso visual */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className={`w-4 h-4 rounded-full border-2 ${loadingStep.includes('Procurando') ? 'border-orange-500 bg-orange-500' : loadingStep.includes('Gerando') ? 'border-orange-500 bg-orange-500' : 'border-slate-600'}`}></div>
+                    <span className={loadingStep.includes('Procurando') ? 'text-orange-400' : loadingStep.includes('Gerando') ? 'text-green-400' : 'text-slate-400'}>
+                      Buscar participante
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className={`w-4 h-4 rounded-full border-2 ${loadingStep.includes('Gerando') ? 'border-orange-500 bg-orange-500' : 'border-slate-600'}`}></div>
+                    <span className={loadingStep.includes('Gerando') ? 'text-orange-400' : 'text-slate-400'}>
+                      Gerar certificado
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : !needsName ? (
               <form onSubmit={handleSearch} className="space-y-6">
                 <div>
                   <label
