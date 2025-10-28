@@ -61,8 +61,8 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     const nomeFormatado = toTitleCase(nome)
     
     // Configurações conforme especificado
-    // Fonte: Montserrat Black Italic 34pt
-    const fontSize = 34
+    // Fonte: Montserrat Black Italic 34pt x 3 = 102pt
+    const fontSize = 102
     const textColor = rgb(1, 1, 1) // Branco
     
     // Coordenadas EXATAS do design:
@@ -70,8 +70,8 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     // Área: W: 1193,84 px, H: 693,15 px
     // Importante: No PDF, Y=0 é no FUNDO da página (não no topo)
     
-    const designX = 2124.48
-    const designY = 803.43
+    const designX = 2250.48
+    const designY = 1103.43
     const maxWidth = 1193.84
     
     // Como a origem Y no PDF é INFERIOR ESQUERDA, precisamos ajustar
