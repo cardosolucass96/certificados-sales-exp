@@ -10,16 +10,12 @@
     "convert:csv": "node convert-excel-to-csv.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.918.0",
     "@pdf-lib/fontkit": "^1.1.1",
-    "canvas": "^3.2.0",
     "csv-parse": "^5.5.3",
-    "minio": "^7.1.3",
     "next": "^14.0.4",
     "pdf-lib": "^1.17.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "xlsx": "^0.18.5"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
