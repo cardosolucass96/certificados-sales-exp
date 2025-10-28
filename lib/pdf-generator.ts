@@ -1,6 +1,7 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
 import fs from 'fs'
 import path from 'path'
+import fontkit from '@pdf-lib/fontkit'
 
 // Função para capitalizar primeira letra de cada palavra
 function toTitleCase(str: string): string {
@@ -12,7 +13,6 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
   
   try {
     // Caminho absoluto para a imagem na pasta public
-    // A pasta public é servida estaticamente e acessível em /public na Vercel
     const modeloPath = path.join(process.cwd(), 'public', 'modelo-certificado.jpg')
     console.log('Caminho do modelo:', modeloPath)
     
@@ -21,6 +21,9 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     
     // Criar PDF
     const pdfDoc = await PDFDocument.create()
+    
+    // Registrar fontkit para usar fontes customizadas
+    pdfDoc.registerFontkit(fontkit)
     
     // Embed da imagem de fundo
     const jpgImage = await pdfDoc.embedJpg(imageBytes)
@@ -37,42 +40,65 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
       height: height,
     })
     
-    // Embed da fonte
-    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+    // Carregar fonte Montserrat Black Italic
+    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Montserrat-BlackItalic.ttf')
+    let font
+    
+    try {
+      const fontBytes = fs.readFileSync(fontPath)
+      font = await pdfDoc.embedFont(fontBytes)
+      console.log('Fonte Montserrat Black Italic carregada com sucesso')
+    } catch (error) {
+      console.error('Erro ao carregar fonte customizada, usando fonte padrão:', error)
+      // Fallback para fonte padrão se a Montserrat não estiver disponível
+      const { StandardFonts } = await import('pdf-lib')
+      font = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+    }
     
     // Nome formatado
     const nomeFormatado = toTitleCase(nome)
     
-    // Configurações de texto - convertendo coordenadas do canvas para PDF
-    // PDF tem origem no canto inferior esquerdo, canvas no superior esquerdo
-    const fontSize = 64 // Tamanho reduzido para funcionar com fonte padrão
+    // Configurações conforme especificado
+    // Fonte: Montserrat Black Italic 34pt
+    const fontSize = 34
     const textColor = rgb(1, 1, 1) // Branco
     
-    // Posições aproximadas baseadas no template original
-    const textX = width / 2 // Centro horizontal
-    const textY = height * 0.4 // Aproximadamente onde fica o nome no template
+    // Posições especificadas (convertendo de pixels do design para PDF)
+    // X: 2124,48 px, Y: 803,43 px (origem no PDF é inferior esquerdo)
+    // Área do texto: W: 1193,84 px, H: 693,15 px
     
-    // Quebrar texto em linhas se necessário
+    const textX = 2124.48
+    const textY = height - 803.43 // Converter Y porque PDF usa origem inferior esquerda
+    const maxWidth = 1193.84
+    
+    // Quebrar texto em linhas se necessário para caber na largura máxima
     const words = nomeFormatado.split(' ')
-    const maxWordsPerLine = 3
     const lines: string[] = []
+    let currentLine = ''
     
-    for (let i = 0; i < words.length; i += maxWordsPerLine) {
-      lines.push(words.slice(i, i + maxWordsPerLine).join(' '))
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize)
+      
+      if (testWidth > maxWidth && currentLine) {
+        lines.push(currentLine)
+        currentLine = word
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine)
     }
     
     // Desenhar cada linha
-    const lineHeight = fontSize + 10
-    const totalHeight = lines.length * lineHeight
-    let startY = textY + totalHeight / 2
+    const lineHeight = fontSize * 1.2 // Espaçamento entre linhas
     
     lines.forEach((line, index) => {
-      const textWidth = font.widthOfTextAtSize(line, fontSize)
-      const x = textX - textWidth / 2 // Centralizar
-      const y = startY - (index * lineHeight)
+      const y = textY - (index * lineHeight)
       
       page.drawText(line, {
-        x: x,
+        x: textX,
         y: y,
         size: fontSize,
         font: font,
@@ -82,7 +108,7 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     
     // Salvar o PDF
     const pdfBytes = await pdfDoc.save()
-    console.log('PDF gerado com sucesso usando pdf-lib puro')
+    console.log('PDF gerado com sucesso')
     return Buffer.from(pdfBytes)
     
   } catch (error) {
