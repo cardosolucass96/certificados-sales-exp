@@ -29,6 +29,8 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     const jpgImage = await pdfDoc.embedJpg(imageBytes)
     const { width, height } = jpgImage.size()
     
+    console.log('Dimensões da imagem:', { width, height })
+    
     // Adicionar página com o tamanho da imagem
     const page = pdfDoc.addPage([width, height])
     
@@ -63,13 +65,20 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     const fontSize = 34
     const textColor = rgb(1, 1, 1) // Branco
     
-    // Posições especificadas (convertendo de pixels do design para PDF)
-    // X: 2124,48 px, Y: 803,43 px (origem no PDF é inferior esquerdo)
-    // Área do texto: W: 1193,84 px, H: 693,15 px
+    // Coordenadas EXATAS do design:
+    // X: 2124,48 px, Y: 803,43 px
+    // Área: W: 1193,84 px, H: 693,15 px
+    // Importante: No PDF, Y=0 é no FUNDO da página (não no topo)
     
-    const textX = 2124.48
-    const textY = height - 803.43 // Converter Y porque PDF usa origem inferior esquerda
+    const designX = 2124.48
+    const designY = 803.43
     const maxWidth = 1193.84
+    
+    // Como a origem Y no PDF é INFERIOR ESQUERDA, precisamos ajustar
+    const textX = designX
+    const textY = height - designY  // Inverte o Y
+    
+    console.log('Posição do texto:', { textX, textY, fontSize, maxWidth })
     
     // Quebrar texto em linhas se necessário para caber na largura máxima
     const words = nomeFormatado.split(' ')
@@ -91,11 +100,15 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
       lines.push(currentLine)
     }
     
+    console.log('Texto dividido em linhas:', lines)
+    
     // Desenhar cada linha
     const lineHeight = fontSize * 1.2 // Espaçamento entre linhas
     
     lines.forEach((line, index) => {
       const y = textY - (index * lineHeight)
+      
+      console.log(`Desenhando linha ${index + 1}: "${line}" em (${textX}, ${y})`)
       
       page.drawText(line, {
         x: textX,
