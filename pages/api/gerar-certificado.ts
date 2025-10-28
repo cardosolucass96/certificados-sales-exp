@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generateCertificate } from '@/lib/pdf-generator'
-import { uploadFile } from '@/lib/minio'
 
 type SuccessResponse = {
   url: string
