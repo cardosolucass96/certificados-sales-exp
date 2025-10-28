@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  certificados:
+    build: .
+    image: certificados-sales-exp:latest
+    environment:
+      - NODE_ENV=production
+      - MINIO_ENDPOINT=s3-minio.grupovorp.com
+      - MINIO_PORT=443
+      - MINIO_USE_SSL=true
+      - MINIO_ACCESS_KEY=tu6gysXY9yFEGKO2cBhv
+      - MINIO_SECRET_KEY=OWevInkkkEFwSz0EOlPi9iS2XHMBLeQGN9dHcEqB
+      - MINIO_BUCKET=certificados-sales
+      - MINIO_REGION=us-east-1
+      - NEXT_PUBLIC_APP_URL=https://certificados.cardosolucas.com
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=CardosoNet"
+      # Domínio principal
+      - "traefik.http.routers.certificados.rule=Host(`certificados.cardosolucas.com`) || Host(`certificado.salesexperience.com.br`)"
+      - "traefik.http.routers.certificados.entrypoints=websecure"
+      - "traefik.http.routers.certificados.tls=true"
+      - "traefik.http.routers.certificados.tls.certresolver=letsencryptresolver"
+      - "traefik.http.services.certificados.loadbalancer.server.port=3000"
+    networks:
+      - CardosoNet
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  CardosoNet:
+    external: true
+    name: CardosoNet
