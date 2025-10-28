@@ -1,8 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 
 // Configuração para o MinIO usando AWS SDK
-const minioEndpoint = process.env.MINIO_ENDPOINT || 'minio.grupovorp.com'
-const minioPort = process.env.MINIO_PORT || '443'
+const minioEndpoint = process.env.MINIO_ENDPOINT || 's3-minio.grupovorp.com'
 const useSSL = process.env.MINIO_USE_SSL === 'true' || true
 const protocol = useSSL ? 'https' : 'http'
 

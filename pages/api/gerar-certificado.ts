@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generateCertificate } from '@/lib/pdf-generator'
-import fs from 'fs'
-import path from 'path'
+import { uploadFile } from '@/lib/minio'
 
 type SuccessResponse = {
   url: string
@@ -44,24 +43,14 @@ export default async function handler(
 
     const fileName = `certificado-${timestamp}-${sanitizedName}.pdf`
     
-    // Salvar localmente no diretório public/certificados
-    const certificadosDir = path.join(process.cwd(), 'public', 'certificados')
+    // Para Vercel: retornar o PDF diretamente como base64 para download
+    const base64Pdf = pdfBuffer.toString('base64')
+    const dataUrl = `data:application/pdf;base64,${base64Pdf}`
     
-    // Criar diretório se não existir
-    if (!fs.existsSync(certificadosDir)) {
-      fs.mkdirSync(certificadosDir, { recursive: true })
-    }
-    
-    const filePath = path.join(certificadosDir, fileName)
-    fs.writeFileSync(filePath, pdfBuffer)
-    
-    console.log('Certificado salvo em:', filePath)
-
-    // URL pública para o arquivo
-    const fileUrl = `/certificados/${fileName}`
+    console.log('PDF preparado para download direto')
 
     return res.status(200).json({
-      url: fileUrl,
+      url: dataUrl,
       fileName: fileName,
     })
   } catch (error) {

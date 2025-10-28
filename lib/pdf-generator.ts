@@ -1,5 +1,4 @@
-import { PDFDocument } from 'pdf-lib'
-import { createCanvas, loadImage, registerFont } from 'canvas'
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import fs from 'fs'
 import path from 'path'
 
@@ -11,94 +10,86 @@ function toTitleCase(str: string): string {
 export async function generateCertificate(nome: string): Promise<Buffer> {
   console.log('Gerando certificado para:', nome)
   
-  // Caminho para a imagem do modelo
-  const modeloPath = path.join(process.cwd(), 'modelo-certificado.jpg')
-  
-  // Verificar se o arquivo existe
-  if (!fs.existsSync(modeloPath)) {
-    throw new Error(`Arquivo de modelo não encontrado: ${modeloPath}`)
-  }
-  
-  // Carregar a imagem
-  const image = await loadImage(modeloPath)
-  
-  // Criar canvas com o tamanho da imagem
-  const canvas = createCanvas(image.width, image.height)
-  const ctx = canvas.getContext('2d')
-  
-  // Desenhar a imagem de fundo
-  ctx.drawImage(image, 0, 0)
-  
-  // Configurar o texto
-  // Fonte bem maior - aproximadamente 96pt
-  // Montserrat Black Italic não está disponível por padrão, usando alternativa similar
-  ctx.font = 'italic bold 128px Arial, sans-serif'
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'top'
-  
-  // Configurações da caixa de texto
-  const boxX = 2070.28
-  const boxY = 912.5  // 1012.5 - 100 = 912.5 (subiu 100px)
-  const boxWidth = 1270.81
-  const boxHeight = 526.75
-  
-  // Altura da linha - também aumentada proporcionalmente
-  const lineHeight = 140
-  
-  // Nome com primeira letra maiúscula
-  const nomeFormatado = toTitleCase(nome)
-  
-  // Quebrar texto em múltiplas linhas se necessário
-  const words = nomeFormatado.split(' ')
-  const lines: string[] = []
-  let currentLine = ''
-  
-  // Calcular quebra de linhas
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word
-    const metrics = ctx.measureText(testLine)
+  try {
+    // Caminho para a imagem do modelo (na pasta public para Vercel)
+    const modeloPath = path.join(process.cwd(), 'public', 'modelo-certificado.jpg')
     
-    if (metrics.width > boxWidth - 40) { // -40 para margem
-      if (currentLine) lines.push(currentLine)
-      currentLine = word
-    } else {
-      currentLine = testLine
+    // Verificar se o arquivo existe
+    if (!fs.existsSync(modeloPath)) {
+      throw new Error(`Arquivo de modelo não encontrado: ${modeloPath}`)
     }
+    
+    // Ler a imagem do modelo
+    const imageBytes = fs.readFileSync(modeloPath)
+    
+    // Criar PDF
+    const pdfDoc = await PDFDocument.create()
+    
+    // Embed da imagem de fundo
+    const jpgImage = await pdfDoc.embedJpg(imageBytes)
+    const { width, height } = jpgImage.size()
+    
+    // Adicionar página com o tamanho da imagem
+    const page = pdfDoc.addPage([width, height])
+    
+    // Desenhar a imagem de fundo
+    page.drawImage(jpgImage, {
+      x: 0,
+      y: 0,
+      width: width,
+      height: height,
+    })
+    
+    // Embed da fonte
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique)
+    
+    // Nome formatado
+    const nomeFormatado = toTitleCase(nome)
+    
+    // Configurações de texto - convertendo coordenadas do canvas para PDF
+    // PDF tem origem no canto inferior esquerdo, canvas no superior esquerdo
+    const fontSize = 64 // Tamanho reduzido para funcionar com fonte padrão
+    const textColor = rgb(1, 1, 1) // Branco
+    
+    // Posições aproximadas baseadas no template original
+    const textX = width / 2 // Centro horizontal
+    const textY = height * 0.4 // Aproximadamente onde fica o nome no template
+    
+    // Quebrar texto em linhas se necessário
+    const words = nomeFormatado.split(' ')
+    const maxWordsPerLine = 3
+    const lines: string[] = []
+    
+    for (let i = 0; i < words.length; i += maxWordsPerLine) {
+      lines.push(words.slice(i, i + maxWordsPerLine).join(' '))
+    }
+    
+    // Desenhar cada linha
+    const lineHeight = fontSize + 10
+    const totalHeight = lines.length * lineHeight
+    let startY = textY + totalHeight / 2
+    
+    lines.forEach((line, index) => {
+      const textWidth = font.widthOfTextAtSize(line, fontSize)
+      const x = textX - textWidth / 2 // Centralizar
+      const y = startY - (index * lineHeight)
+      
+      page.drawText(line, {
+        x: x,
+        y: y,
+        size: fontSize,
+        font: font,
+        color: textColor,
+      })
+    })
+    
+    // Salvar o PDF
+    const pdfBytes = await pdfDoc.save()
+    console.log('PDF gerado com sucesso usando pdf-lib puro')
+    return Buffer.from(pdfBytes)
+    
+  } catch (error) {
+    console.error('Erro ao gerar certificado:', error)
+    throw error
   }
-  if (currentLine) lines.push(currentLine)
-  
-  // Centralizar verticalmente o texto na caixa
-  const totalHeight = lines.length * lineHeight
-  const startY = boxY + (boxHeight - totalHeight) / 2
-  
-  // Desenhar cada linha centralizada
-  const centerX = boxX + boxWidth / 2
-  lines.forEach((line, index) => {
-    ctx.fillText(line, centerX, startY + (index * lineHeight))
-  })
-  
-  // Converter canvas para buffer
-  const imageBuffer = canvas.toBuffer('image/jpeg', { quality: 0.95 })
-  
-  // Criar PDF e inserir a imagem
-  const pdfDoc = await PDFDocument.create()
-  
-  // Adicionar página com tamanho baseado na imagem
-  const page = pdfDoc.addPage([image.width, image.height])
-  
-  // Embed da imagem no PDF
-  const jpgImage = await pdfDoc.embedJpg(imageBuffer)
-  
-  // Desenhar imagem na página
-  page.drawImage(jpgImage, {
-    x: 0,
-    y: 0,
-    width: image.width,
-    height: image.height,
-  })
-  
-  // Salvar o PDF
-  const pdfBytes = await pdfDoc.save()
-  return Buffer.from(pdfBytes)
 }

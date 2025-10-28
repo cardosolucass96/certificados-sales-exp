@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "pages/api/gerar-certificado.ts": {
+      "maxDuration": 30
+    }
+  },
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
+    }
+  ]
+}
