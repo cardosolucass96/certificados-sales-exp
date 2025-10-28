@@ -30,7 +30,7 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Montserrat-BlackItalic.ttf')
     registerFont(fontPath, { family: 'Montserrat Black Italic' })
     
-    // Criar canvas para desenhar o texto (mesmas dimensões do PDF)
+    // Criar canvas para desenhar o texto
     const canvas = createCanvas(width, height)
     const ctx = canvas.getContext('2d')
     
@@ -40,27 +40,24 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     // Nome formatado
     const nomeFormatado = toTitleCase(nome)
     
-    // Configurações conforme especificado
+    // Configurações
     const fontSize = 102
     ctx.font = `${fontSize}px "Montserrat Black Italic"`
-    ctx.fillStyle = '#FFFFFF' // Branco
+    ctx.fillStyle = '#FFFFFF'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'top'
     
-    // Coordenadas EXATAS do design:
-    // X: 2124,48 px, Y: 803,43 px
-    // Área: W: 1193,84 px, H: 693,15 px
+    // Coordenadas: X: 2124,48 px, Y: 803,43 px, W: 1193,84 px
     const designX = 2124.48
     const designY = 803.43
     const maxWidth = 1193.84
     
-    // Calcular centro da área
     const centerX = designX + (maxWidth / 2)
     const textY = designY
     
     console.log('Posição do texto:', { centerX, textY, fontSize, maxWidth })
     
-    // Quebrar texto em linhas se necessário
+    // Quebrar texto em linhas
     const words = nomeFormatado.split(' ')
     const lines: string[] = []
     let currentLine = ''
@@ -82,7 +79,7 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     
     console.log('Texto dividido em linhas:', lines)
     
-    // Desenhar cada linha no canvas
+    // Desenhar cada linha
     const lineHeight = fontSize * 1.2
     
     lines.forEach((line, index) => {
@@ -93,11 +90,9 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     
     // Converter canvas para PNG
     const pngBuffer = canvas.toBuffer('image/png')
-    
-    // Embed da imagem PNG no PDF
     const pngImage = await pdfDoc.embedPng(pngBuffer)
     
-    // Desenhar o texto (como imagem) sobre o PDF
+    // Desenhar o texto sobre o PDF
     firstPage.drawImage(pngImage, {
       x: 0,
       y: 0,
@@ -108,7 +103,7 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
     
     // Salvar o PDF
     const pdfBytes = await pdfDoc.save()
-    console.log('PDF gerado com sucesso com Canvas')
+    console.log('PDF gerado com sucesso com Canvas + PDF')
     return Buffer.from(pdfBytes)
     
   } catch (error) {
