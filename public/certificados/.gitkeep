@@ -1,1 +1,4 @@
 # Pasta para armazenar os certificados gerados
+
+Esta pasta é criada automaticamente pela API se não existir.
+Os PDFs são salvos aqui e servidos publicamente via /certificados/

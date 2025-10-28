@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/init-server.js && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/init-server.js && next start",
     "lint": "next lint",
     "convert:csv": "node convert-excel-to-csv.js"
   },
