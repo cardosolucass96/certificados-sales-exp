@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  certificados:
+    build: .
+    image: certificados-sales-exp:latest
+    environment:
+      - NODE_ENV=production
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_REGION=${MINIO_REGION}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://certificados.cardosolucas.com}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=CardosoNet"
+      - "traefik.http.routers.certificados.rule=Host(`certificados.cardosolucas.com`)"
+      - "traefik.http.routers.certificados.entrypoints=websecure"
+      - "traefik.http.routers.certificados.tls=true"
+      - "traefik.http.routers.certificados.tls.certresolver=letsencryptresolver"
+      - "traefik.http.services.certificados.loadbalancer.server.port=3000"
+    networks:
+      - CardosoNet
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  CardosoNet:
+    external: true
+    name: CardosoNet
