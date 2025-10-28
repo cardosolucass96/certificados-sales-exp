@@ -16,7 +16,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=CardosoNet"
-      - "traefik.http.routers.certificados.rule=Host(`certificados.cardosolucas.com`)"
+      # Domínio principal
+      - "traefik.http.routers.certificados.rule=Host(`certificados.cardosolucas.com`) || Host(`certificado.salesexperience.com.br`)"
       - "traefik.http.routers.certificados.entrypoints=websecure"
       - "traefik.http.routers.certificados.tls=true"
       - "traefik.http.routers.certificados.tls.certresolver=letsencryptresolver"
