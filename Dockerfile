@@ -16,7 +16,7 @@ WORKDIR /app
 # install runtime dependencies for canvas
 RUN apk add --no-cache cairo jpeg pango giflib
 ENV NODE_ENV=production
-# copy from builder (includes node_modules already built)
+# copy all from builder (includes node_modules already built)
 COPY --from=builder /app/ .
 EXPOSE 3000
 CMD ["npm", "start"]
