@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import fs from 'fs'
 import path from 'path'
 
 // Função para capitalizar primeira letra de cada palavra
@@ -10,16 +11,13 @@ export async function generateCertificate(nome: string): Promise<Buffer> {
   console.log('Gerando certificado para:', nome)
   
   try {
-    // Buscar a imagem usando fetch (compatível com Vercel)
-    const imageUrl = `${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3001'}/modelo-certificado.jpg`
-    console.log('Buscando modelo de:', imageUrl)
+    // Caminho absoluto para a imagem na pasta public
+    // A pasta public é servida estaticamente e acessível em /public na Vercel
+    const modeloPath = path.join(process.cwd(), 'public', 'modelo-certificado.jpg')
+    console.log('Caminho do modelo:', modeloPath)
     
-    const imageResponse = await fetch(imageUrl)
-    if (!imageResponse.ok) {
-      throw new Error(`Falha ao buscar modelo: ${imageResponse.status}`)
-    }
-    
-    const imageBytes = await imageResponse.arrayBuffer()
+    // Ler a imagem do modelo
+    const imageBytes = fs.readFileSync(modeloPath)
     
     // Criar PDF
     const pdfDoc = await PDFDocument.create()

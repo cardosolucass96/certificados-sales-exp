@@ -1,46 +1,28 @@
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function Sucesso() {
   const router = useRouter()
   const { url, nome } = router.query
   const [copied, setCopied] = useState(false)
-  const [isDataUrl, setIsDataUrl] = useState(false)
 
-  useEffect(() => {
-    // Verificar se é um data URL (base64)
-    if (url && typeof url === 'string' && url.startsWith('data:')) {
-      setIsDataUrl(true)
-      // Fazer download automático do PDF
-      downloadPdf(url, `certificado-${nome || 'participante'}.pdf`)
+  const copyToClipboard = () => {
+    if (url) {
+      // Copiar URL completa
+      const fullUrl = url.toString().startsWith('http') 
+        ? url.toString() 
+        : `https://certificados.cardosolucas.com${url}`
+      
+      navigator.clipboard.writeText(fullUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
-  }, [url, nome])
-
-  const downloadPdf = (dataUrl: string, filename: string) => {
-    const link = document.createElement('a')
-    link.href = dataUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
   }
 
   const handleDownload = () => {
     if (url && typeof url === 'string') {
-      if (isDataUrl) {
-        downloadPdf(url, `certificado-${nome || 'participante'}.pdf`)
-      } else {
-        window.open(url, '_blank')
-      }
-    }
-  }
-
-  const copyToClipboard = () => {
-    if (url) {
-      navigator.clipboard.writeText(url as string)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      window.open(url, '_blank')
     }
   }
 
@@ -82,43 +64,30 @@ export default function Sucesso() {
             </div>
 
             <div className="space-y-4">
-              {!isDataUrl && (
-                <div className="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
-                  <p className="text-xs text-slate-400 mb-2">Link do certificado:</p>
-                  <p className="text-xs text-slate-300 break-all font-mono bg-slate-800 p-2 rounded border border-slate-600">
-                    {url}
-                  </p>
-                </div>
-              )}
-
-              {isDataUrl && (
-                <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-700/50">
-                  <p className="text-sm text-blue-300 text-center">
-                    📥 Download automático iniciado!
-                    <br />
-                    <span className="text-xs text-blue-400">
-                      Se não iniciar, clique no botão abaixo
-                    </span>
-                  </p>
-                </div>
-              )}
+              <div className="bg-slate-700/50 p-4 rounded-lg border border-slate-600">
+                <p className="text-xs text-slate-400 mb-2">Link do certificado:</p>
+                <p className="text-xs text-slate-300 break-all font-mono bg-slate-800 p-2 rounded border border-slate-600">
+                  {url && url.toString().startsWith('http') 
+                    ? url 
+                    : `https://certificados.cardosolucas.com${url}`
+                  }
+                </p>
+              </div>
 
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleDownload}
                   className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 text-center shadow-lg hover:shadow-orange-500/50"
                 >
-                  {isDataUrl ? '📥 Baixar Certificado' : 'Visualizar Certificado'}
+                  📥 Baixar Certificado
                 </button>
 
-                {!isDataUrl && (
-                  <button
-                    onClick={copyToClipboard}
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 border border-slate-600"
-                  >
-                    {copied ? '✓ Link Copiado!' : 'Copiar Link'}
-                  </button>
-                )}
+                <button
+                  onClick={copyToClipboard}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 border border-slate-600"
+                >
+                  {copied ? '✓ Link Copiado!' : 'Copiar Link'}
+                </button>
 
                 <button
                   onClick={() => router.push('/')}
@@ -130,10 +99,7 @@ export default function Sucesso() {
 
               <div className="text-center text-sm text-slate-500 mt-4 pt-4 border-t border-slate-700">
                 <p>
-                  {isDataUrl 
-                    ? '💾 O certificado foi baixado automaticamente para seu dispositivo.'
-                    : '💾 Salve este link! Você pode acessá-lo sempre que precisar.'
-                  }
+                  💾 Salve este link! Você pode acessá-lo sempre que precisar.
                 </p>
               </div>
             </div>

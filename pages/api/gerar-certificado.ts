@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generateCertificate } from '@/lib/pdf-generator'
+import fs from 'fs'
+import path from 'path'
 
 type SuccessResponse = {
   url: string
@@ -42,14 +44,26 @@ export default async function handler(
 
     const fileName = `certificado-${timestamp}-${sanitizedName}.pdf`
     
-    // Para Vercel: retornar o PDF diretamente como base64 para download
-    const base64Pdf = pdfBuffer.toString('base64')
-    const dataUrl = `data:application/pdf;base64,${base64Pdf}`
+    // Salvar o PDF na pasta public/certificados
+    const certificadosDir = path.join(process.cwd(), 'public', 'certificados')
     
-    console.log('PDF preparado para download direto')
+    // Criar diretório se não existir
+    if (!fs.existsSync(certificadosDir)) {
+      fs.mkdirSync(certificadosDir, { recursive: true })
+      console.log('Diretório de certificados criado:', certificadosDir)
+    }
+    
+    const filePath = path.join(certificadosDir, fileName)
+    fs.writeFileSync(filePath, pdfBuffer)
+    console.log('PDF salvo em:', filePath)
+
+    // Retornar URL do arquivo salvo (acessível via /certificados/)
+    const publicUrl = `/certificados/${fileName}`
+    
+    console.log('PDF disponível em:', publicUrl)
 
     return res.status(200).json({
-      url: dataUrl,
+      url: publicUrl,
       fileName: fileName,
     })
   } catch (error) {
