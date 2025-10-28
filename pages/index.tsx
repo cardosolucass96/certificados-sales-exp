@@ -209,10 +209,13 @@ export default function Home() {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                    placeholder="Ex: etkt_WUCopX8eSuanhenMJoZk"
+                    placeholder="Ex: etkt_codigo ou email@exemplo.com ou 85999887766"
                     required
                     disabled={loading}
                   />
+                  <p className="text-xs text-slate-400 mt-2">
+                    💡 Telefone: pode ser com ou sem DDD
+                  </p>
                 </div>
 
                 {error && (
