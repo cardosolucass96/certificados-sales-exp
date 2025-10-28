@@ -55,6 +55,7 @@ export default async function handler(
       fileName: fileName,
     })
   } catch (error) {
+    console.error('ERRO GERAR CERTIFICADO:', error)
     return res.status(500).json({ error: 'Erro ao gerar certificado' })
   }
 }
