@@ -22,6 +22,7 @@ export default function Sucesso() {
 
   const handleDownload = () => {
     if (url && typeof url === 'string') {
+      // Para URLs da API, abrir em nova aba para download
       window.open(url, '_blank')
     }
   }

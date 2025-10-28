@@ -57,8 +57,8 @@ export default async function handler(
     fs.writeFileSync(filePath, pdfBuffer)
     console.log('PDF salvo em:', filePath)
 
-    // Retornar URL do arquivo salvo (acessível via /certificados/)
-    const publicUrl = `/certificados/${fileName}`
+    // Retornar URL da API de download ao invés de arquivo estático
+    const publicUrl = `/api/download/${fileName}`
     
     console.log('PDF disponível em:', publicUrl)
 
