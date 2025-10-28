@@ -8,7 +8,7 @@ Sistema para geração de certificados do evento Sales Experience Teresina.
 - Validação de dados do participante
 - Solicitação de nome completo caso não esteja preenchido
 - Geração automática de certificado em PDF
-- Upload e armazenamento no MinIO
+- Armazenamento local dos certificados
 - Link público para download do certificado
 
 ## 📋 Pré-requisitos
@@ -24,17 +24,13 @@ Sistema para geração de certificados do evento Sales Experience Teresina.
 npm install
 ```
 
-2. Configure as variáveis de ambiente:
-
-O arquivo `.env.local` já está configurado com as credenciais do MinIO.
-
-3. Execute o projeto em modo desenvolvimento:
+2. Execute o projeto em modo desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-4. Acesse no navegador:
+3. Acesse no navegador:
 
 ```
 http://localhost:3000
@@ -54,14 +50,14 @@ certificados-sales-exp/
 │   └── sucesso.tsx                  # Página de sucesso com link do certificado
 ├── lib/
 │   ├── participants.ts              # Utilitário para ler e buscar no CSV
-│   ├── minio.ts                     # Cliente MinIO e funções de upload
 │   └── pdf-generator.ts             # Gerador de PDF com nome do participante
 ├── styles/
 │   └── globals.css                  # Estilos globais (Tailwind)
-├── participantes-sales-teresina.csv # Dados dos participantes (convertido)
-├── participantes-sales-teresina.xlsx # Dados dos participantes (original)
-├── credentials minio.json           # Credenciais do MinIO
-├── .env.local                       # Variáveis de ambiente
+├── public/
+│   ├── certificados/                # Certificados gerados
+│   ├── fonts/                       # Fonte Montserrat
+│   └── modelo-certificado.pdf       # Template do certificado
+├── participantes-sales-teresina.csv # Dados dos participantes
 ├── package.json
 ├── tsconfig.json
 ├── next.config.js
@@ -81,9 +77,9 @@ certificados-sales-exp/
    - Se não estiver → solicita o nome completo
 
 3. **Geração do Certificado**
-   - Sistema gera PDF com o nome do participante
-   - Faz upload para o MinIO
-   - Retorna link público
+   - Sistema gera PDF com o nome do participante usando pdf-lib
+   - Salva o certificado localmente em `public/certificados/`
+   - Retorna link público para download
 
 4. **Página de Sucesso**
    - Exibe link do certificado
@@ -93,15 +89,10 @@ certificados-sales-exp/
 ## 🔑 Variáveis de Ambiente
 
 ```env
-MINIO_ENDPOINT=minio.grupovorp.com
-MINIO_PORT=443
-MINIO_USE_SSL=true
-MINIO_ACCESS_KEY=tu6gysXY9yFEGKO2cBhv
-MINIO_SECRET_KEY=OWevInkkkEFwSz0EOlPi9iS2XHMBLeQGN9dHcEqB
-MINIO_BUCKET=certificados-sales
-MINIO_REGION=us-east-1
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+> **Nota:** Em produção, configure `NEXT_PUBLIC_APP_URL` com a URL do seu servidor.
 
 ## 📦 Build para Produção
 
@@ -116,32 +107,20 @@ npm start
 - **TypeScript** - Tipagem estática
 - **Tailwind CSS** - Estilização
 - **pdf-lib** - Geração de PDFs
-- **MinIO** - Armazenamento de objetos
+- **@pdf-lib/fontkit** - Suporte para fontes customizadas
 - **csv-parse** - Leitura de CSV
 
 ## 📝 Próximos Passos
 
-- [ ] Adicionar template personalizado de PDF
 - [ ] Enviar certificado por e-mail
-- [ ] Sistema de logs
 - [ ] Dashboard administrativo
 - [ ] Relatórios de certificados gerados
 
 ## 🐛 Troubleshooting
 
-### Erro ao conectar ao MinIO
-
-Verifique se as credenciais no `.env.local` estão corretas.
-
 ### Participante não encontrado
 
 Certifique-se de que o arquivo `participantes-sales-teresina.csv` está na raiz do projeto e contém os dados corretos.
-
-**Nota:** Se você tiver apenas o arquivo `.xlsx`, execute o script de conversão:
-
-```bash
-node convert-excel-to-csv.js
-```
 
 ### Erro ao gerar PDF
 
