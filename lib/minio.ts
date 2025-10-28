@@ -7,7 +7,7 @@ const useSSL = process.env.MINIO_USE_SSL === 'true' || true
 const protocol = useSSL ? 'https' : 'http'
 
 const s3Client = new S3Client({
-  endpoint: `${protocol}://${minioEndpoint}:${minioPort}`,
+  endpoint: `${protocol}://${minioEndpoint}`,
   region: process.env.MINIO_REGION || 'us-east-1',
   credentials: {
     accessKeyId: process.env.MINIO_ACCESS_KEY || 'tu6gysXY9yFEGKO2cBhv',
@@ -33,8 +33,11 @@ export async function uploadFile(
 
     await s3Client.send(command)
 
-    // Retornar URL pública
-    const url = `${protocol}://${minioEndpoint}:${minioPort}/${BUCKET_NAME}/${fileName}`
+    console.log(`Arquivo ${fileName} enviado para o MinIO com sucesso`)
+
+    // Retornar URL pública do MinIO (sem a porta no path)
+    const url = `${protocol}://${minioEndpoint}/${BUCKET_NAME}/${fileName}`
+    console.log(`URL pública: ${url}`)
     return url
   } catch (error) {
     console.error('Erro ao fazer upload do arquivo:', error)
