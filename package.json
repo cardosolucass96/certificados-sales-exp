@@ -1,0 +1,32 @@
+{
+  "name": "certificados-sales-exp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "convert:csv": "node convert-excel-to-csv.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.918.0",
+    "canvas": "^3.2.0",
+    "csv-parse": "^5.5.3",
+    "minio": "^7.1.3",
+    "next": "^14.0.4",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.3.3"
+  }
+}
