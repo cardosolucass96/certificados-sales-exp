@@ -3,7 +3,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 # install build dependencies for canvas
 RUN apk add --no-cache python3 make g++ cairo-dev jpeg-dev pango-dev giflib-dev
-# install deps
+# install dependencies
 COPY package*.json ./
 RUN npm ci
 # copy sources and build
