@@ -9,8 +9,15 @@ function toTitleCase(str: string): string {
 }
 
 export async function generateCertificate(nome: string): Promise<Buffer> {
+  console.log('Gerando certificado para:', nome)
+  
   // Caminho para a imagem do modelo
   const modeloPath = path.join(process.cwd(), 'modelo-certificado.jpg')
+  
+  // Verificar se o arquivo existe
+  if (!fs.existsSync(modeloPath)) {
+    throw new Error(`Arquivo de modelo não encontrado: ${modeloPath}`)
+  }
   
   // Carregar a imagem
   const image = await loadImage(modeloPath)
