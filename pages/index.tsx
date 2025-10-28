@@ -1,16 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 
 export default function Home() {
+  const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [needsName, setNeedsName] = useState(false)
   const [fullName, setFullName] = useState('')
   const [participant, setParticipant] = useState<any>(null)
+  const [autoSearched, setAutoSearched] = useState(false)
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Busca automática quando há parâmetro 'cod' na URL
+  useEffect(() => {
+    if (router.isReady && router.query.cod && !autoSearched) {
+      const codigo = router.query.cod as string
+      setSearchValue(codigo)
+      setAutoSearched(true)
+      performSearch(codigo)
+    }
+  }, [router.isReady, router.query.cod, autoSearched])
+
+  const performSearch = async (searchTerm: string) => {
     setError('')
     setLoading(true)
 
@@ -20,7 +32,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ searchValue }),
+        body: JSON.stringify({ searchValue: searchTerm }),
       })
 
       const data = await response.json()
@@ -37,7 +49,7 @@ export default function Home() {
       if (!data['nome participante'] || data['nome participante'].trim() === '') {
         setNeedsName(true)
       } else {
-        // Gerar certificado diretamente
+        // Se tem nome, gerar certificado automaticamente
         await generateCertificate(data['nome participante'], data)
       }
     } catch (err) {
@@ -46,6 +58,11 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await performSearch(searchValue)
   }
 
   const handleNameSubmit = async (e: React.FormEvent) => {
@@ -138,7 +155,7 @@ export default function Home() {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
-                    placeholder="Ex: 86999999999"
+                    placeholder="Ex: etkt_WUCopX8eSuanhenMJoZk"
                     required
                     disabled={loading}
                   />
