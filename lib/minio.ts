@@ -6,6 +6,13 @@ const minioPort = process.env.MINIO_PORT || '443'
 const useSSL = process.env.MINIO_USE_SSL === 'true' || true
 const protocol = useSSL ? 'https' : 'http'
 
+console.log('[MinIO] Configuração:', {
+  endpoint: `${protocol}://${minioEndpoint}`,
+  bucket: process.env.MINIO_BUCKET || 'certificados-sales',
+  hasAccessKey: !!(process.env.MINIO_ACCESS_KEY),
+  hasSecretKey: !!(process.env.MINIO_SECRET_KEY),
+})
+
 const s3Client = new S3Client({
   endpoint: `${protocol}://${minioEndpoint}`,
   region: process.env.MINIO_REGION || 'us-east-1',
